@@ -1,0 +1,384 @@
+
+以及近年来发展起来的，用于3D虚拟数字人的 神经网络 + 变形动画的方案
+2003 Character Rigging and Animation: Parts 1 & 2【没什么参考价值】
+美术向，绑骨相关的
+这个没视频实在太不友好了...
+* 2003 Animation System Implementation: What Works and What Doesn't【值得一听】
+是讲动作/动画系统构建
+大佬开篇就强调了和使用什么DCC(max,maya)无关，和使用什么图形API(OpenGL,DC)无关，重点不是那些细节的实现
+这个真有点东西，可以找时间去听一听
+* 2003 Animation Blending: Achieving Inverse Kinematics and More【值得一听】
+有关动作混合，或者说动作矫正/程序化动作相关的
+这个要是有视频就更好了，能听出来大佬放了不少演示
+2003 A Review of Current and Future Animation Issues【没什么参考价值】
+这标题...时效性有点强哇...已经20年前了，我的评价是没什么好听的了...
+* 2003 Simulation and Animation with Hardware-Accelerated Procedural Textures【值得一听】
+这是真的有东西，N厂大佬分享的，有关 Simulation & Anim 应用硬件加速，程序纹理技术
+没视频太可惜了，可以找时间去听听看
+* 2003 Physics and Animation, Blending Kinetics and Kinematics in a 3rd Person Shooter【值得一听】
+针对第三人称射击游戏中应用的物理&动画&动力学混合相关的内容
+这个没视频也太可惜了，要是有视频以后做 3rdPS 真能好好参考下
+2003 Relinquishing Control: Giving Programmers Control of Your Animation Assets【没什么参考价值】
+将动作资源管理相关的，没什么参考价值了...
+2003 The 12 Principles of Traditional Character Animation Applied to 3D Computer Animation【没什么参考价值】
+好像是迪士尼动画十二法则，
+现在可以在B站之类的地方看到更好的视频讲解，这个算是动画人必学的基础
+仅针对这篇演讲没什么参考性了
+2004 Acting for Animators【没什么参考价值】
+美术向讲动画制作相关经验的...
+* 2004 Artificial Potential Fields for the Control of Navigation and Animation【值得一听】
+寻路&角色控制&动画，有点东西，可以找时间去听听看...
+2004 Producing Motion Capture and Animation【没什么参考价值】
+04年讲动捕技术，偏实用工具理解向的文章
+2005 Character Rigging Best Practices【没什么参考价值】
+美术向，绑骨的内容，这个没视频太不友好了...
+2005 Cinema Quality Face Animation Using Bones【没什么参考价值】
+面部骨骼动画方案在影视中的应用相关
+2005 Concepts & Animating Sam Fisher in Splinter Cell:The Chaos Theory【没什么参考价值】
+偏美术向，讲细胞分裂中的动画制作相关
+2005 Feature Film Performance Animation and Digital Human Acquisition for Next Generation Games【没什么参考价值】
+现在已经到所谓的 Next Generation 了吧
+** 2006 Dancing with the Wind【有参考价值】
+《与风共舞》，这标题真的太诗意了
+演讲是关于廉价的空气动力学计算方法与在现代物理引擎中应用相关的，以后做这方面内容可以参考一下
+** 2007 MotorStorm: A Crash Course in Applied Physics【有参考价值】
+《机车风暴》中应用物理的分享
+赛车相关的物理模拟确实是程序化动作的一个经典问题，以后做这方面内容可以参考一下
+2007 Autodesk 3ds Max and Autodesk Maya: Advanced Animation Techniques【没什么参考价值】
+Autodesk介绍 Max 和 Maya 的动画系统相关
+看了下PPT有点空，而且年代有点远了...
+2007 How To Animate a Character You've Never Seen Before【没什么参考价值】
+虽然挂了Programmer标，但感觉是偏美术向设计向的内容，和程序化动作相关性不大
+2007 Inside Cryptic Studios: Art, Programming, and Design【没什么参考价值】
+是讲某个工作室内部有关动画的设计，美术，程序相关的生产流程的
+2007 Leaping Across the Uncanny Valley with Universal Capture (UCap): From The Matrix Films to Real-time Interactive Applications【没什么参考价值】
+也是Mocap动捕技术，但提出了一种 UCap 通用捕捉以及如何跨越恐怖谷，以及在《黑客帝国》中的应用相关...
+2008 Autodesk MotionBuilder: Cross Product Integration - Autodesk 3ds Max and Autodesk Maya - of Animation Assets to Develop Workable Motion Libraries【没什么参考价值】
+Autodesk的，跨软件动作库/动作资源，或者说通用动作资源的构建相关...
+* 2008 Creating a Character in DRAKE'S FORTUNE【值得一看】
+08年《神秘海域：德雷克》是真的火，GDC这边居然有两篇演讲
+本篇是讲在《神秘海域：德雷克》中创建一个角色，有关动画部分，自底向上都需要考虑那些问题
+看了下PPT感觉有点空，但作为一个大纲以后开新项目设计角色动作系统的时候确实可以来看看
+* 2009 Animating in a Complex World: Integrating AI and Animation【值得一看】
+有关动画资源应用到游戏世界中的一些问题，例如动画控制，LocalMotion（RootMotion）怎么解决
+但找了下资源只有PPT，这就有点空了
+纯手撸一套动画系统可以来看看
+** 2009 Dynamic Walking with Semi-Procedural Animation【有参考价值】
+半程序混合行走动画，解决上坡上台阶的适配问题
+这算是程序化动作里一个比较典的问题了，很有参考价值
+但让我不太能接受的一点是，这篇居然是Unity的演讲，所以...东西呢？插件呢？
+** 2009 Creating First Person Movement for MIRROR'S EDGE【有参考价值】
+GDC中国的，《镜之边缘》第一人称跑酷3C系统构建
+讲道理文章有点屑，大篇在介绍团队愿景，偏设计向，内容空，篇幅短
+但是这个课题《第一人称跑酷3C》还是很有研究价值的
+
+
+新世之光
+* 2010 Animation Process of God of War III 【值得一听】
+《战神3》动画工作流相关，偏设计向，可以去听听看...
+** 2010 Animation Warping for Responsiveness in FIFA Soccer【有参考价值】
+以 FIFA 为例讲 Anim Warp 相关的
+Anim Warp 确实不失为一种解决动作与场景变化适配问题的手段
+像UE中就有提供 Anim Warp 功能，Unity中也有简单的 MatchTarget 实现 Simple Warp 效果
+* 2010 Animation and Player Control in Uncharted: Drake's Fortune and Uncharted II: Among Thieves【值得一看】
+叒是《神秘海域：德雷克》，这游戏真是火...
+本篇是讲项目中动画系统解决的一些问题，但篇幅有点短了，内容也有点空，看看就好
+** 2010 Go With the Flow! Fluid and Particle Physics in PixelJunk Shooter【有参考价值】
+流体，粒子相关的，程序化动作中一个经典问题
+大致看了下研究是介绍了一个2D游戏中的实时流体模拟方法
+2011 Designing and Implementing a Satisfying Sword Fight【没什么参考价值】
+设计向，如何设计令人满意的剑战
+** 2011 CRYSIS 2: Getting More Interactivity out of Animation-Data【有参考价值】
+主要介绍了《孤岛危机2》在动画混合系统，提出了一种 Blend Spaec 及参数化混合的方法，进而创建出平滑的能够适配任意运动方向输入的动作
+* 2011 Living Crowds: AI & Animation in ASSASSIN'S CREED: BROTHERHOOD【值得一看】
+介绍了《刺客信条：兄弟情》中的动画和AI，注意这里的AI不是现在意义上的深度学习神经网络相关，而仅仅是自动控制NPC的一种逻辑，大致看了下内容有点空，随便看看就好
+* 2011 Animating NPC's in UNCHARTED【值得一看】
+大致看了下是讲游戏NPC动作系统构建的，但演讲时间不长，内容有点空，随便看看就好
+** 2012 Animation Driven Locomotion for Smoother Navigation【有参考价值】
+针对游戏角色的平滑寻路，介绍了一种以动作为驱动的实现方式
+有点类似于Max中Biped与群组结合的动作寻路，即考虑如何用动作拼凑出寻路的路线
+* 2012 Animation methodology for Battlefield 3【值得一看】
+讨论了战地3中的一些动画效果
+但站在学术演讲的角度，本篇不免有些散乱，有些假大空，只是展示了一堆效果
+如果要做FPS游戏的话倒是可以来看看
+* 2012 Creating the Flood Effects in Uncharted 3【值得一看】
+短短短，假大空之典范，要做流体的话去看看就好
+** 2012 Math for Game Programmers 【有参考价值 - 非课题性质】
+这篇真的很实在，大概翻了翻PPT，里面提到的一些数学方法都有学到过
+** 2013 Math for Game Programmers【有参考价值 - 非课题性质】
+和上面2012年的演讲一样，很实在，大致看了下分为两个部分，
+前半部分是讲 Cube Bessel  Spine 一类的插值方法，这方面我不太熟悉，可以找时间去好好看看
+后半部分是讲3D旋转相关的，矩阵/四元数之类的，这方面我就很熟了
+** 2013 Math for Game Programmers: Dual Numbers【有参考价值 - 非课题性质】
+是讲对偶数的，对偶数类似四元数，也能实现对三维向量的旋转操作，并且其在泰勒展开上有更优异的性质
+这个后面可以找时间好好去学一学
+** 2013 Managing the Movement: Getting Your Animation Behaviors to Behave Better【有参考价值】
+这篇是真的有东西，介绍了如何管理动画复杂度，如何结合AI设计出在寻路，在防撞拟合上表现良好动画控制器
+2013 Animation Bootcamp 系列【值得一看】
+不止一次演讲，但2013的这个系列比较偏美术向，动画师向
+2014 2D Animation at Klei Entertainment 【没什么参考价值】
+2D动画，美术向的
+2014 Animation Bootcamp 系列【值得一看】
+和13年类似，偏美术向，设计向的，美术的/策划的同事真的可以去好好看看
+但感觉内容有点空
+*** 2014 Animation Bootcamp: An Indie Approach to Procedural Animation【参考价值极高】
+14 Animation Bootcamp 中的一篇，这篇是讲程序化动作的
+本篇的作者仅仅使用了13个关键帧Pose，加上程序的过渡，Simulation的位移，就形成了一个十分不错的 Motion 效果
+并结合Ragdoll表现撞墙，触地的效果，并讨论了这种基于关键帧+程序过渡的动画制作在其他游戏中的运用前景
+2014 Create, Rig and Animate Game-Ready Characters in Under 10 minutes - New Product Launch (Presented by Mixamo)【没什么参考价值】
+Under 10 min 一出就不用看了...工具狗爬...
+* 2014 Designing the Bungie Animation Workflow【值得一看】
+偏设计向，设计Anim Workflow / Pipeline 的，以后做这方面可以去借鉴下
+2014 Creating BioShock Infinite's Elizabeth【没什么参考价值】
+这个真的太偏设计向了，是讲如何设计《生化骑兵》里的伊丽莎白这个角色
+2014 Discovering the Story and Character in the Real-Time, Animated Short Film Unplugged【没什么参考价值】
+依旧是很偏设计向的文章，关于如何发掘出角色的故事
+** 2014 Face Animation Retargeting in Destiny【有参考价值】
+《命运》中的面部动画重定向，这个课题就很重量级了，不管是走骨骼动画的重定向，还是变形动画的拓扑重映射都有很高的难度
+这篇可以好好看看，就算是学一学里面面部的布线也是不错的
+** 2014 Math for Game Programmers: Dictionary Learning in Games【有参考价值 - 非课题性质】
+有关字典学习，KSVD的介绍，这个系列我真是太爱了
+* 2014 Harmonix's Character Rigging Framework: Harmony【值得一看】
+角色绑定工作流相关的，时长有点短
+* 2014 Powerful and Effective Animation for 2D/3D Games【值得一看】
+14 年的 GDC China，《骷髅女孩》的动作师介绍有关2D/3D动画中一些通用的制作技巧
+偏美术向
+* 2015 Animation Bootcamp 系列【值得一看】
+总的来说，从13年开始有 Animation Bootcamp 系列，到15年
+这三年的 Animation Bootcamp 一直没有摆脱一种过于偏 A 偏美术设计向，过于空泛的趋势（当然后面16年那个男人就要带着MM上台了）
+动画相关，策划设计相关的同事确实可以去好好看一下这三年的 Animation Bootcamp ，其中有不少值得学习的美术概念，设计理论，并且结合了一些如《落日超驰》这样的实际项目
+* 2015 Designing with Physics: Bend the Physics Engine to Your Will【值得一看】
+时长有些短，介绍了一些物理引擎所能实现的效果，将物理引入到游戏设计中
+** 2015 The Art of First Person Animation for Destiny【有参考价值】
+介绍了《命运》中的第一人称动画技术
+* 2015 Scroll Back: The Theory and Practice of Cameras in Side-Scrollers【值得一看】
+介绍了2D卷轴游戏中如何创建更好的横向运动相机
+* 2015 Animation Bootcamp: Locomotion of Sunset Overdrive【值得一看】
+15年 Animation Bootcamp 中的一篇
+是讲《落日超驰》中的动作设计，其中涉及不少场景交互的效果，程序化动作的元素
+* 2015 Capturing The Last of Us: Motion Capture Pipeline【值得一看】
+讲动捕管线的，篇幅有点短
+** 2015 Finding Balance: Realizing Responsive High Fidelity Character Movement in Just Cause 3【有参考价值】
+正当防卫3中，为实现高响应性的（或者说能应对玩家任意移动方向输入的）动作，要使用动画混合（类似Unity Animator中的2D BlendTree 功能 ）
+演讲提到了动画混合中的问题和解决方案，例如使用基于 Pose Match 的混合（和MotionMatching的PoseMatch一样）
+* 2015 Igniting the Shared Experience with Cinematics in Assassin's Creed Unity【值得一看】
+总结了刺客信条中如何设计故事，设计动画，创作出引入入胜的剧情效果
+偏美术向，设计向
+** 2015 In Your Hands: The Character (of Watch_Dogs)【有参考价值】
+介绍了《看门狗》中，在第三人称跑图+FPS的玩法中应用的各种动画技术
+包括如何创建更好的第三人称跑图动画状态机，第三人称射击与换弹结合AimIK的效果
+** 2015 Massive Crowd on Assassin's Creed Unity: AI Recycling【有参考价值】
+介绍了如何通过AI，创建出《刺客信条》场景中大量的，可复制的，持久的，交互式的npc，控制npc的动画，并结合lod
+这里的AI和目前意义上的深度学习，神经网络概念不同，仅仅是一种更加智能的控制NPC的程序
+** 2015 Math for Game Programmers: Fast and Funky 1D Nonlinear Transformations【有参考价值 - 非课题性质】
+我真是爱死这个系列了
+本篇介绍了很多1D的非线性变换函数
+* 2015 Game Feel: Why Your Death Animation Sucks【值得一看】
+时长有点短，讨论了有关游戏中死亡动作的设计以及结合游戏逻辑的问题
+实操了一个2D游戏中的死亡动作效果
+* 2016 Animating Quadruped Characters in The 'Flame in The Flood'【值得一看】
+介绍了《洪潮之焰》中的四足动画，偏美术向
+** 2016 Animating With Math【有参考价值 - 非课题性质】
+介绍了一些动画中的数学方法
+* 2016 Animation Bootcamp: Tricks of the Trade【值得一看】
+请到了六位动画师分享他们在工作中的技巧
+** 2016 Math for Game Programmers: Juicing Your Cameras With Math【有参考价值】
+3C系的，介绍了有关镜头运动，分屏融合中的数学方法
+** 2016 On All Fours: Creating Realistic Quadruped Motion【有参考价值】
+介绍了如何通过AI生成四足角色的动作
+* 2016 Technical Artist Bootcamp: Honey, Where is My Wingsuit? - Building the Just Cause 3 Animation and Rigging Pipeline【值得一看】
+介绍了《正当防卫3》中的动画&绑定工作流
+前沿浪潮
+这里在特别针对10年，尤其15年后，每年的GDC演讲数量激增
+单一的使用 anim 关键字已经无法搜索到全部的有关动画的内容
+为此从本节开始，我们就只专注于能够被当做是程序化动作研究方向的那些文章，对于偏美术向，设计向的内容将直接略过
+
+
+** 2015 Physics for Game Programmers: Destruction in Smash Hit【有参考价值】
+15年的 Physics for Game Programmer 系列都挺不错的，特别推荐这篇，是讲物理破坏的模拟方法
+ 
+
+*** 2016 Motion Matching and The Road to Next-Gen Animation【参考价值极高】
+这篇就比较重量级了，被誉为是 Motion Matching 万法之源
+目前我们也对 Motion Matching进行了自研，并已攻克其核心的运动采样和匹配算法
+ 
+*** 2016 Fitting the World: A Biomechanical Approach to Foot IK【参考价值极高】
+细讲了有关FootIK的各种技术，包括行走时的坡面适配，滑步处理等等
+目前奥拉2新版IK中对于FootIK 仅做了简单的 IdleIK 效果，但这也是出于性能消耗的考量，IdleIK若地面状况不变仅需在站立时解算一次目标态，随后分帧迭代不断趋紧即可
+即将到来的30日版本中，已制作好了新的能够应对地面状况变化的FootIK
+未来更多的FootIK需求可以参照这篇演讲中提到的一些方法
+ 
+*** 2016 IK Rig: Procedural Pose Animation【参考价值极高】
+介绍了在游戏开发中引入IK绑定所能实现的各种效果
+包括动画的重定向复用，姿态的变形（正常行走 -> 拄拐行走），角色与场景的交互（低头，撞肩）
+ 
+ 
+
+* 2017 Huddle up! Making the [SPOILER] of 'INSIDE'【值得一看】
+如何制作《Inside》中这种克苏鲁风格的怪物
+但讲道理这篇的泛用性不高，以后做此类效果的时候来看看就好
+ 
+
+** 2017 It's All in the Hands: VR Animation and Locomotion Systems in 'Lone Echo'【有参考价值】
+介绍了《孤独回声》中的VR第一人称动画系统
+ 
+
+** 2017 Bringing Hell to Life: AI and Full Body Animation in 'DOOM'【有参考价值】
+介绍了《毁灭战士》中一种基于AI的全身动画控制思路，从而对NPC实现流畅的简单的健壮的动画效果
+但感觉泛用性不高，内容空泛，看看就好
+（这里的AI与目前的深度学习，神经网络概念不同，仅是一种较为智能的程序）
+ 
+
+* 2017 Motion Warping in 'Gears of War 4': Doing More with Less【值得一看】
+介绍了《战争机器4》中的MotionWarp技术，时长略短
+ 
+
+** 2017 Replicating Chaos: Vehicle Replication in 'Watch Dogs 2'【有参考价值】
+介绍了看门狗中的车辆模拟，以及如何应对多人联机中的网络延迟，物理同步问题
+ 
+
+** 2018 Inertialization: High-Performance Animation Transitions in 'Gears of War'【有参考价值】
+微软提出的一种“惯性过渡”的动画过渡算法
+与传统过渡不同无需采样当前和目标两段动画产生额外消耗，而是在播放目标动画的同时，结合当前姿态和上一帧姿态进行的一种差值方法
+（有些类似于目前我们在动作平滑器中使用到的，Liner差值和CubeBessel差值方法）
+ 
+
+** 2018 Deep Learning for Animation and Content Creation (Presented by NVIDIA)【有参考价值】
+** 2018 Character Control with Neural Networks and Machine Learning【有参考价值】
+两篇有关AI与角色控制的
+一篇是N厂的，一篇是育碧的
+这也算是近几年的一个趋势，逐渐将AI引入到游戏开发，引入到动作领域中
+ 
+
+
+* 2018 Cloth Self Collision with Predictive Contacts【值得一看】
+介绍了一种更快的防止布料自交的算法 --- PreContact 预接触法
+ 
+
+
+** 2018 Real Player Motion Tech in 'EA Sports UFC 3'【有参考价值】
+EA的，项目是结合动捕的UFC格斗，提出了一种名为RPM的动画控制方式
+感觉内核和16年育碧的MotionMatching一样，只不过换了个名字而已
+ 
+
+*** 2017 Physics Animation in 'Uncharted 4: A Thief's End'【参考价值极高】
+*** 2019 Physics Driven Ragdolls and Animation at EA: From Sports to Star Wars【参考价值极高】
+*** 2020 Physical Animation in 'Star Wars Jedi: Fallen Order'【参考价值极高】
+*** 2020 Machine Learning Summit: Ragdoll Motion Matching【参考价值极高】
+** 2022 Machine Learning Summit: Walk Lizzie, Walk! Emergent Physics-Based Animation through Reinforcement Learning【参考价值极高】
+四篇放一起，都是介绍物理动画的，这也算是程序化动作中的一大课题了
+物理动画是指在传统动画的基础上，施加物理的处理，让物理模拟的角色(Ragdoll)趋近于动画，并保持与场景的碰撞
+最后两篇是结合了Machine Learning，MotionMatching，的物理动画
+ 
+ 
+ 
+
+
+** 2019 It IS Rocket Science! The Physics of 'Rocket League' Detailed【有参考价值】
+** 2021 Replicating Chaos: Vehicle Replication in 'Watch Dogs 2'【有参考价值】
+** 2021 A Recipe for Mixed Reality in 'Mario Kart Live'【有参考价值】
+** 2021 Mixed Reality Racing Fuses Deeper AR Experience with Physical Gameplay【有参考价值】
+三篇赛车模拟的文章，第一篇是19年《火箭联盟的》，第二篇是21年《看门狗2》的
+（《火箭联盟》是一款赛车游戏）
+大佬讲了很多《火箭联盟》中赛车模拟的物理方法，干货满满
+狗2则是讲了几种应对多人联机状况下的赛车模拟，如何对抗延迟
+马里奥赛车则是针对仅第一人称下的赛车效果，以及结合AR技术
+ 
+
+* 2018 A Practical Approach to Developing Forward-Facing Rigs, Tools and Pipelines【值得一看】
+大佬分享他们的动画管线/动画工作流
+ 
+
+* 2018 Expanding Animation and Design Capabilities in Post-Launch 'Battlefield 1'【值得一看】
+有关战地1的动画技术，以及如何在游戏上线后拓展动画内容
+ 
+
+* 2019 Unity AI and Machine Learning Tools for Behavior Creation (Presented by Unity Technologies)【值得一看】
+介绍Unity AI的功能，帮助非AI专家搭建机器学习平台
+但对这种推销库演讲的我还是有点反感的，只有自己写的东西才是值得信任的，才是能不断优化满足新需求的
+ 
+
+
+
+** 2019 Starship Physics and Controls that Feel Real: Bringing the Toys of Starlink to Digital Life【有参考价值】
+展示了《星链：阿特拉斯之战》中飞行器的物理模拟效果
+但时长略短，有点空，以后要做这方面的话，来看看效果就好
+ 
+
+* 2019 Deep Learning Based Large Scale Inverse Kinematics Accelerated by Intel OpenVINO Toolkit (Presented by NCsoft, in association with Intel)【值得一看】
+通过深度学习为大规模IK加速，时长略短有点空，感觉纯团队WorkShow
+ 
+
+* 2019 Introducing the New Animation Rigging Features (Presented by Unity Technologies)【值得一看】
+Unity介绍他们的新AnimRig技术，反感这种推库行为，看看就好
+ 
+
+** 2020 Technical Artist Summit: Freeform Animation Rigging: Evolving the Animation Pipeline【有参考价值】
+动画管线相关的
+ 
+
+
+** 2020 Machine Learning: Physics Simulation, Kolmogorov Complexity, and Squishy Bunnies【有参考价值】
+通过机器学习来加速物理模拟
+ 
+
+** 2021 Animation Summit: Take 'CONTROL' of Animation【有参考价值】
+介绍了《Control》中的动画系统
+ 
+
+** 2021 Animation Summit: Environmental and Motion Matched Interactions; 'Madden', 'FIFA' and Beyond!【有参考价值】
+FIFA中的MotionMatch，动作与交互匹配技术，时长略短
+ 
+
+** 2021 Math In Game Development Summit: Getting There in Style: Intro to Interpolation and Control Systems【有参考价值】
+风格化的差值方法
+ 
+** 2019 A New Era of Performance Capture with Machine Learning【有参考价值】
+** 2022 Animation Summit: 'FIFA 22's' Hypermotion: Full-Match Mocap Driving Machine Learning Technology【有参考价值】
+19年育碧的通过机器学习辅助Mocap技术，清理动作数据或是直接从音频中生成面部动画，但怎么找不到视频...
+22年EA同样介绍了机器学习辅助Mocap，并将其应用到了FIFA中
+ 
+
+* 2022 Animation Summit: The Animated World of 'Ratchet and Clank: Rift Apart'【值得一看】
+** 2022 Animation Summit: The Facial Animation Pipeline of 'Marvel's Guardians of The Galaxy'【有参考价值】
+第一篇是介绍《银河护卫队》中的动画技术和动画相关的一些设计，内容有点空，看看就好
+第二篇是《银河护卫队》中的面部动画Pipeline
+ 
+** 2019 ML Tutorial Day: From Motion Matching to Motion Synthesis, and All the Hurdles In Between【有参考价值】
+这就很重量级了，从MotionMatching到MotionSynthesis，但篇幅有点短，内容略空
+同样是找不到视频
+** 2020 How to Dissect an Exploding Spaceship in 'Hardspace: Shipbreaker'【有参考价值】
+非常有意思的一篇
+如何结合物理、动画，制作一艘可以被激光切割的宇宙飞船
+然而视频无了只有PPT
+** 2021 Animation Summit: How to Make Animation Blend More Natural: A Mannequin-Based Multi-Fragment Animation Blend System【有参考价值】
+一个人体多动画融合的方案
+** 2021 Motion Matching in 'The Last of Us Part II'【有参考价值】
+《最后生还者2》中的MotionMatching技术
+这个只有PPT，知乎上倒是有人详细发文，可以去看看
+** 2021 Machine Learning Summit: Full-Body Animation Generation for Expressive NPCs【有参考价值】
+同样只有PPT，基于机器学习的NPC全身动画技术
+** 2021 Blowing from the West: Simulating Wind in 'Ghost of Tsushima'【有参考价值】
+对马岛中的风模拟效果，只有PPT
+** 2021 AI Summit: Driving Emotionally Expressive NPC Animations and Behaviors with a Designer Friendly Pipeline【有参考价值】
+AI构建情感管道，创造玩家和角色之间的纽带体验
+* 2022 Technical Artist Summit: Human Perception of Motion and Animation【值得一看】
+只有PPT，关于运动感知相关的科普
+** 2022 Architecting Jolt Physics for 'Horizon Forbidden West'【有参考价值】
+《地平线 西之绝境》中的 Joint Physics
+** 2022 Machine Learning Summit: AI Animator : A Real Time Motion Completion System【有参考价值】
+Real Time AI Animator，只有PPT，内容有点空
+总结比较好的课题/研究方向
+
+Simulation相关：
+
+IK相关：
+
+动画矫正与动画融合相关：
+
+寻路相关：
+
+3C设计相关：
+
+AI相关：
+
