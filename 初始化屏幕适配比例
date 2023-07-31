@@ -1,0 +1,38 @@
+using UnityEngine;
+using UnityEngine.UI;
+
+namespace Polaris
+{
+    public class AutoCavasScalerAdjustor : MonoBehaviour
+    {
+
+        // Use this for initialization
+        void Awake()
+        {
+            CanvasScaler canvasScaler = this.GetComponent<CanvasScaler>();
+
+            float standard_width = canvasScaler.referenceResolution.x;
+            float standard_height = canvasScaler.referenceResolution.y;
+            float device_width = Screen.width;
+            float device_height = Screen.height;
+
+            float standard_aspect = standard_width / standard_height;
+            float device_aspect = device_width / device_height;
+
+            if (device_aspect < standard_aspect)
+            {
+                canvasScaler.matchWidthOrHeight = 0;
+            }
+            else
+            {
+                canvasScaler.matchWidthOrHeight = 1;
+            }
+        }
+
+        // Update is called once per frame
+        void Update()
+        {
+
+        }
+    }
+}
