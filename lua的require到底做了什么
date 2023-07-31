@@ -1,0 +1,126 @@
+在游戏开发中会经常使用到lua作为游戏逻辑层的脚本语言，各种优势就不说了，虽然平时用的比较多，但对lua语言本身和内部的一些实现并不是很了解，让我们先从lua的require入手来一探require的各种用法吧。
+
+require其实类似与C/C++中的#include，就是加载一个指定名称的模块进来，该模块可以来自于lua，也可能来自于C/C++，在lua虚拟机启动时，默认会给我们预先加载好一些模块，保存在package.loaded中，我们可以实际打印一波看看：
+
+for k, v in pairs(package.loaded) do
+	print(k, v)
+end
+
+
+可以看到预先加载好的模块名称，一目了然。那么，lua又是从哪些地方去加载模块呢？加载模块又有什么规则呢？这个就是由package.path指定，同样可以实际打印一波看看：
+
+
+
+如果我们希望修改lua加载模块的路径，只要修改这个package.path就可以了。
+
+让我们回到前面打印的package.loaded结果，我们发现这个table的value都是table，这不禁让人好奇：require的返回值是什么呢？我们可以自己写一个简单的自定义模块去验证下：
+
+--mypackage.lua
+print("hello world")
+然后，执行：
+
+require("mypackage")
+for k, v in pairs(package.loaded) do
+	print(k, v)
+end
+
+
+诶，发现自定义模块返回的值是true。这是为什么呢？明明我们的代码里没有任何一句return语句。难道是在没有写返回值的情况下，默认给我们返回true了？那既然如此，手动显式加一句return试试：
+
+--mypackage.lua
+print("hello world")
+return nil
+然后require，我们发现结果还是一样，返回值为true：
+
+
+
+其实，lua之所以这么做，是为了避免重复加载同一个模块，每加载一个模块，就将模块的name作为key，模块的返回值（如果有且不为nil）作为value插入到package.loaded中去。这样下次再去加载这个模块时，就无需加载再去执行该模块的代码，直接返回package.loaded对应key的value即可。怎么验证呢？我们可以尝试require一个模块两次试试：
+
+require("mypackage")
+require("mypackage")
+
+
+注意到，hello world只被打印了一次，说明第二次require的时候并没有执行mypackage中的代码。require内部实际上是调用了loadfile接口来进行模块加载，loadfile的返回值是一个函数，执行该函数，相当于执行该模块的代码：
+
+f = loadfile("D:/lua/mypackage.lua")
+f()
+
+
+那么，有没有办法让重复require时都去执行模块的代码呢？答案是显而易见的，只要将package.loaded中对应的key删掉就可以了：
+
+require("mypackage")
+package.loaded.mypackage = nil
+require("mypackage")
+
+
+有意思的是，如果我们的模块返回值为false，或者我们设置package.loaded.mypackage = false时，无论require多少次，都会触发模块的加载执行。不过根据我们之前的验证，这也是符合情理的hhh。说到这里，其实我们就可以自己写一个简单的require了：
+
+function require_ex(module)
+    if package.loaded[module] then
+        return package.loaded[module]
+    end
+ 
+    for pattern in string.gmatch(package.path, '[^;]+%?[^;]+') do
+        local path = string.gsub(pattern, '%?', module)
+        local fp = loadfile(path)
+        if fp then
+            local ret = fp()
+            if ret ~= nil then
+                package.loaded[module] = ret
+            else
+                package.loaded[module] = true
+            end
+            return package.loaded[module]
+        end
+    end
+end
+
+有时候，我们希望require进来的模块是不允许定义全局变量的，因为全局变量会污染我们整个环境，并可能造成意想不到的后果，在lua 5.1，我们可以使用setfenv函数来设置函数环境，而在lua 5.2以上版本，则可以通过修改env参数来解决，loadfile的第三个参数就是函数环境：
+
+    local env = {}
+    setmetatable(env, {__index = _G, __newindex = function(t, k, v) print("forbidden global var ", k) end})
+    local fp = loadfile(path, nil, env)
+如果lua在package.path中找不到对应的lua模块，那么接下来它会尝试从C++模块中加载，类似地，C++路径是由package.cpath指定的：
+
+
+
+针对dll，require内部是使用package.loadlib方法实现的，它接受两个参数，一是模块的路径，二是给lua调用的函数名称（lua_openxxx)。其他的就基本和前面加载lua模块一致了，完整的require_ex代码如下：
+
+function require_ex(module)
+    if package.loaded[module] then
+        return package.loaded[module]
+    end
+ 
+    for pattern in string.gmatch(package.path, '[^;]+%?[^;]+') do
+        local path = string.gsub(pattern, '%?', module)
+        local env = {}
+        setmetatable(env, {__index = _G, __newindex = function(t, k, v) print("forbidden global var ", k) end})
+        local fp = loadfile(path, nil, env)
+        if fp then
+            local ret = fp()
+            if ret ~= nil then
+                package.loaded[module] = ret
+            else
+                package.loaded[module] = true
+            end
+            return package.loaded[module]
+        end
+    end
+ 
+    for pattern in string.gmatch(package.cpath, '[^;]+%?[^;]+') do
+        local path = string.gsub(pattern, '%?', module)
+        local fp = package.loadlib(path, "luaopen_" .. module)
+        if fp then
+            local ret = fp()
+            if ret ~= nil then
+                package.loaded[module] = ret
+            else
+                package.loaded[module] = true
+            end
+            return package.loaded[module]
+        end
+    end
+end
+————————————————
+版权声明：本文为CSDN博主「红火吖」的原创文章，遵循CC 4.0 BY-SA版权协议，转载请附上原文出处链接及本声明。
+原文链接：https://blog.csdn.net/huangchonghai/article/details/122322313
