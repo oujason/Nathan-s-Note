@@ -1,0 +1,36 @@
+public static float GetOverDraw(float background = 0,float perDrawAdd = 0.05f)
+{
+    int totalOverDraw = 0;
+    int totalPixel = 0;
+    GetOverDrawData(out totalOverDraw,out totalPixel,background,perDrawAdd);
+    return  (float)totalOverDraw / (float)(Screen.width * Screen.height);
+}
+
+public static void GetOverDrawData(out int totalOverDraw, out int totalPixel,float background = 0f,float perDrawAdd = 0.05f)
+{
+    Texture2D texture2D = new Texture2D(Screen.width, Screen.height);
+
+    texture2D.ReadPixels(new Rect(0, 0, Screen.width, Screen.height), 0, 0);
+    texture2D.Apply();
+    // frame++;
+    // string filePath = System.IO.Path.Combine(Application.dataPath, "image", frame + ".jpg").Replace("/Assets", "");
+    // File.WriteAllBytes(filePath, texture2D.EncodeToJPG(80));
+
+    totalOverDraw = 0;
+    totalPixel = 0;
+    for (int i = 0; i < Screen.width; i++)
+    {
+        for (int j = 0; j < Screen.height; j++)
+        {
+            var col = texture2D.GetPixel(i, j);
+            var overDrawCount = Mathf.RoundToInt(Mathf.Pow(col.g,2.2f) / perDrawAdd);
+
+            if (overDrawCount >= 1)
+            {
+                totalOverDraw += overDrawCount - 1;
+                totalPixel++;
+            }
+        }
+    }
+    Object.DestroyImmediate(texture2D);
+}
