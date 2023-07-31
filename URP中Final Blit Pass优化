@@ -1,0 +1,192 @@
+
+Final Blit Pass的优化
+在 URP 默认的管线中会强制在最后执行 Final Blit Pass，它的原理就是将当前渲染的 RT 最终 Blit 到 FrmeBuffer 中显示，Blit 的过程中会执行伽马矫正。当前渲染的 RT 会分是否使用后处理，如果没使用后处理就是 _CameraColorTexture，如果使用了后处理会先对 _CameraColorTexture 进行后处理，拿 Bloom 来说后处理进行中间会生成临时 RT 进行降采样等卷积操作，其他后处理原理也类似，然后将后处理结果的 RT 在执行 UberPostProcess，就是将结果在 Blit 到 _AfterPostProcessTexture 中，最终在执行 Final Blit Pass 进行伽马矫正后 Blit 到 FrameBuffer 中。
+每次 Blit 不仅消耗带宽还需要对片元进行中着色，关键是大部分手机和 PC 是不需要伽马矫正的，因为这些硬件已经支持了 SRGBA 转换，可以直接将线性空间结算的结果提交给显卡，显卡自己会做伽马矫正直接显示出来。以我们目前测试经验来看只有一些安卓模拟器还有一些很老的设备不支持 SRGBA 转换，所以优化的第一步就是“干掉” Final Blit Pass。在管线中可以执行代码 Display . main . requiresSrgbBlitToBackbuffer 判断是否需要进行手动伽马矫正，在渲染的时候就可以直接渲染到 FrameBuffer 中，而不需要所有都渲染到 _CameraColorTexture 中，然后再额外进行 Final Blit Pass 了，这样性能上能得到一个很大的提升。
+
+以下是例子
+
+初始化的时候c#设置：
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+namespace PJBN.Rendering
+{
+    public class SRGBInit : MonoBehaviour
+    {
+        void Update()
+        {
+            if (Display.main.requiresSrgbBlitToBackbuffer)
+            {
+                Shader.EnableKeyword("_UI_LINEAR_TO_SRGB_CONVERSION");
+            }
+            else
+            {
+                Shader.DisableKeyword("_UI_LINEAR_TO_SRGB_CONVERSION");
+            }
+        }
+    }
+}
+
+例子shader,fragment最后判断
+// Unity built-in shader source. Copyright (c) 2016 Unity Technologies. MIT license (see license.txt)
+
+
+Shader "PJBN/UI/UIClip"
+{
+    Properties
+    {
+        [PerRendererData] _MainTex ("Sprite Texture", 2D) = "white" {}
+        _Color ("Tint", Color) = (1,1,1,1)
+
+        _StencilComp ("Stencil Comparison", Float) = 8
+        _Stencil ("Stencil ID", Float) = 0
+        _StencilOp ("Stencil Operation", Float) = 0
+        _StencilWriteMask ("Stencil Write Mask", Float) = 255
+        _StencilReadMask ("Stencil Read Mask", Float) = 255
+
+        _ColorMask ("Color Mask", Float) = 15
+
+        //--add---
+        _ClipSoftX ("_ClipSoftX", Float) = 15
+        _ClipSoftY ("_ClipSoftY", Float) = 15
+        //--add---
+
+        [Toggle(UNITY_UI_ALPHACLIP)] _UseUIAlphaClip ("Use Alpha Clip", Float) = 0
+
+        [HideInInspector]_ClipRect("ClipRect",vector) = (1,1,0,0)
+        [HideInInspector]_UIMaskSoftnessX ("_UIMaskSoftnessX", float) = 0
+        [HideInInspector]_UIMaskSoftnessY ("_UIMaskSoftnessY", float) = 0
+    }
+
+    SubShader
+    {
+        Tags
+        {
+            "Queue"="Transparent"
+            "IgnoreProjector"="True"
+            "RenderType"="Transparent"
+            "PreviewType"="Plane"
+            "CanUseSpriteAtlas"="True"
+        }
+
+        Stencil
+        {
+            Ref [_Stencil]
+            Comp [_StencilComp]
+            Pass [_StencilOp]
+            ReadMask [_StencilReadMask]
+            WriteMask [_StencilWriteMask]
+        }
+
+        Cull Off
+        Lighting Off
+        ZWrite Off
+        ZTest [unity_GUIZTestMode]
+        Blend SrcAlpha OneMinusSrcAlpha
+        ColorMask [_ColorMask]
+
+        Pass
+        {
+            Name "Default"
+
+            HLSLPROGRAM
+            #pragma vertex vert
+            #pragma fragment frag
+            #pragma target 2.0
+
+            #include "Packages/com.unity.polaris.render-pipelines.core/ShaderLibrary/Color.hlsl"
+            #include "Packages/com.unity.polaris.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+
+            #pragma multi_compile _ _UI_LINEAR_TO_SRGB_CONVERSION
+            #pragma multi_compile_local _ UNITY_UI_CLIP_RECT
+            #pragma multi_compile_local _ UNITY_UI_ALPHACLIP
+
+            struct appdata_t
+            {
+                float4 vertex   : POSITION;
+                float4 color    : COLOR;
+                float2 texcoord : TEXCOORD0;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
+            };
+
+            struct v2f
+            {
+                float4 vertex   : SV_POSITION;
+                half4 color    : COLOR;
+                float2 texcoord  : TEXCOORD0;
+                half4  mask : TEXCOORD1;
+                UNITY_VERTEX_OUTPUT_STEREO
+            };
+
+
+            sampler2D _MainTex;
+
+            CBUFFER_START(UnityPerMaterial)
+                half4 _Color;
+                half4 _ClipRect;
+                half4 _TextureSampleAdd;
+
+                half _ClipSoftX;
+                half _ClipSoftY;
+
+                half _UIMaskSoftnessX;
+                half _UIMaskSoftnessY;
+            CBUFFER_END
+
+            v2f vert(appdata_t v)
+            {
+                v2f OUT;
+                UNITY_SETUP_INSTANCE_ID(v);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(OUT);
+                OUT.vertex = TransformObjectToHClip(v.vertex);
+
+                OUT.texcoord = v.texcoord;
+
+                OUT.color = v.color * _Color;
+
+                float2 pixelSize = OUT.vertex.w;
+                pixelSize *= rcp(half2(1, 1) * abs(mul((float2x2)UNITY_MATRIX_P, _ScreenParams.xy)));
+                half4 clampedRect = clamp(_ClipRect, -2e10, 2e10);
+                float2 maskUV = (v.vertex.xy - clampedRect.xy) * rcp(clampedRect.zw - clampedRect.xy);
+                OUT.mask = half4(v.vertex.xy * 2 - clampedRect.xy - clampedRect.zw, 0.25 * rcp(0.25 * half2(_UIMaskSoftnessX, _UIMaskSoftnessY) + abs(pixelSize.xy)));
+
+                return OUT;
+            }
+
+
+            inline float SoftUnityGet2DClipping (in float2 position, in float4 clipRect)
+            {
+                float2 xy = (position.xy-clipRect.xy)/float2(_ClipSoftX,_ClipSoftY)*step(clipRect.xy, position.xy);
+                float2 zw = (clipRect.zw-position.xy)/float2(_ClipSoftX,_ClipSoftY)*step(position.xy,clipRect.zw);
+                float2 factor = clamp(0, zw, xy);
+                return saturate(min(factor.x,factor.y));
+            }
+
+            half4 frag(v2f IN) : SV_Target
+            {
+                half4 color = (tex2D(_MainTex, IN.texcoord) + _TextureSampleAdd) * IN.color;
+
+
+                #ifdef UNITY_UI_CLIP_RECT
+                half2 m = saturate((_ClipRect.zw - _ClipRect.xy - abs(IN.mask.xy)) * IN.mask.zw);
+                color.a *= m.x * m.y;
+                #endif
+
+                #ifdef UNITY_UI_ALPHACLIP
+                clip (color.a - 0.001);
+                #endif
+
+                // Back to sRGB
+                #if _UI_LINEAR_TO_SRGB_CONVERSION
+                {
+                    color = LinearToSRGB(color);
+                }
+                #endif
+                
+                return color;
+            }
+            ENDHLSL
+        }
+    }
+}
