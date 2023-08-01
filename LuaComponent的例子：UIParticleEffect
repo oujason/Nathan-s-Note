@@ -1,0 +1,567 @@
+﻿using System.Collections.Generic;
+ using System.Linq;
+ using LuaInterface;
+ using Polaris.Core;
+ using UnityEngine;
+
+namespace PJBN
+{
+	public class LuaComponent : MonoBehaviour
+	{
+		public LuaTable table = null;
+		//private bool hasAwaked = false;
+		[NoToLua]
+		public string luaClassName;
+
+		// 只是用于外显，方便调试而已
+		[NoToLua] public string curShowedClassName;
+#if UNITY_EDITOR
+		[NoToLua]
+		public static LuaState state;
+#endif
+
+		private bool _destroyed = false;
+		//添加LUA组件
+		public static LuaTable Add (GameObject go, LuaTable tableClass)
+		{
+			LuaFunction fun = tableClass.GetLuaFunction ("New");
+			if (fun == null) {
+				Debug.LogErrorFormat ("对象{0}的LuaComponent没定义New！", go.name);
+				return null;
+			}
+			LuaTable ret = fun.Invoke<LuaTable, LuaTable> (tableClass);
+            fun.Dispose();
+			LuaComponent cmp = go.AddComponent<LuaComponent> ();
+			cmp.table = ret;
+			cmp.InitTable ();
+			/** 对象激活状态，Awake、OnEnable消息执行时cmp.table为空，没有调用Lua的方法，这里手动补上
+			 *  对象非激活状态，Awake、OnEnable消息会延迟到激活时执行，cmp.table已经赋值，无需再额外调用cmp.Awake和cmp.OnEnable
+			 */
+			if (go.activeInHierarchy) {
+				cmp.Awake ();
+				cmp.OnEnable ();
+			}
+			return cmp.table;
+		}
+
+		//获取lua组件
+		public static LuaTable Get (GameObject go, LuaTable table)
+		{
+			LuaComponent[] cmps = go.GetComponents<LuaComponent> ();
+			string mat1 = table.ToString ();
+			foreach (LuaComponent cmp in cmps) {
+				//string mat2 = cmp.table.GetMetaTable ().ToString ();
+				if(cmp.table == null)
+				{
+					//Debug.LogError($"LuaComponent Table参数为空，是否实例化了有LuaComponent的对象？Object名称：{go.name}");
+					continue;
+				}
+				string mat2 = cmp.table ["class"].ToString ();
+				if (mat1 == mat2) {                 
+					return cmp.table;
+				}
+			}
+			return null;
+		}
+
+        public static LuaTable GetComponentInChildren(GameObject go, LuaTable table)
+        {
+            LuaComponent[] cmps = go.GetComponentsInChildren<LuaComponent>();
+			string mat1 = table.ToString();
+            foreach (LuaComponent cmp in cmps)
+            {
+                //string mat2 = cmp.table.GetMetaTable ().ToString ();
+                if(cmp.table == null)
+                {
+	                //Debug.LogError($"LuaComponent Table参数为空，是否实例化了有LuaComponent的对象？Object名称：{go.name}");
+	                continue;
+                }
+                string mat2 = cmp.table["class"].ToString();
+                if (mat1 == mat2)
+                {
+                    return cmp.table;
+                }
+            }
+            return null;
+        }
+        
+        public static List<LuaTable> GetComponentsInChildren(GameObject go, LuaTable table)
+        {
+	        List<LuaTable> luaTables = new List<LuaTable>();
+	        LuaComponent[] cmps = go.GetComponentsInChildren<LuaComponent>();
+	        string mat1 = table.ToString();
+	        foreach (LuaComponent cmp in cmps)
+	        {
+		        //string mat2 = cmp.table.GetMetaTable ().ToString ();
+		        if(cmp.table == null)
+		        {
+			        //Debug.LogError($"LuaComponent Table参数为空，是否实例化了有LuaComponent的对象？Object名称：{go.name}");
+			        continue;
+		        }
+		        string mat2 = cmp.table["class"].ToString();
+		        if (mat1 == mat2)
+		        {
+			        luaTables.Add(cmp.table);
+		        }
+	        }
+	        return luaTables;
+        }
+
+
+        public static LuaTable GetOrAdd (GameObject go, LuaTable table)
+		{
+			LuaTable resultTable = Get (go, table);
+			if (resultTable != null) {
+				return resultTable;
+			}
+			return Add (go, table);
+		}
+
+		public static void Remove (GameObject go, LuaTable table)
+		{
+			LuaComponent[] cmps = go.GetComponents<LuaComponent> ();
+			string mat1 = table.ToString ();
+			foreach (LuaComponent cmp in cmps) {
+                if(cmp.table == null)
+                {
+                    continue;
+                }
+                //string mat2 = cmp.table.GetMetaTable ().ToString ();
+                string mat2 = cmp.table ["class"].ToString ();
+				if (mat1 == mat2) {
+					// cmp.OnDestroy();
+
+					if(Application.isEditor && !Application.isPlaying)
+					{
+						DestroyImmediate(cmp);
+					}
+					else
+					{
+						Destroy (cmp);
+					}
+					break;
+				}
+			}
+		}
+
+		// 为了解决ui关闭时主动移除lua对C#对象的引用，防止LuaComponent在滞后的OnDestroy再次使用lua层的C#对象引用，在主动销毁前提前主动调用OnDestroy。
+		public static void ProactiveRemoveAll (GameObject go)
+		{
+			LuaComponent[] cmps = go.GetComponentsInChildren<LuaComponent> (true);
+			foreach (LuaComponent cmp in cmps) {
+				cmp.OnDestroy();
+
+				if(Application.isEditor && !Application.isPlaying)
+				{
+					DestroyImmediate(cmp);
+				}
+				else
+				{
+					Destroy (cmp);
+				}
+			}
+		}
+
+
+		public static void RemoveErrCmps (GameObject go)
+		{
+			LuaComponent[] cmps = go.GetComponents<LuaComponent> ();
+			for (int i = cmps.Count() - 1; i >= 0; i--)
+			{
+				LuaComponent cmp = cmps[i];
+				if(cmp.table == null && cmp.luaClassName.IsEmpty())
+				{
+					// cmp.OnDestroy();
+
+					if(Application.isEditor && !Application.isPlaying)
+					{
+						DestroyImmediate(cmp);
+					}
+					else
+					{
+						Destroy (cmp);
+					}
+				}
+			}
+		}
+		
+		protected void InitTable ()
+		{
+			table ["gameObject"] = this.gameObject;
+			table ["transform"] = this.transform;
+
+			var cname = table["__cname"];
+			if (cname != null)
+			{
+				curShowedClassName = cname.ToString();
+			}
+		}
+
+		protected virtual LuaTable SetTableClass ()
+		{
+			LuaTable tableClass;
+#if UNITY_EDITOR
+			if (state!=null)
+			{
+				tableClass = state[luaClassName] as LuaTable;
+            }
+			else
+#endif
+			{
+                tableClass = LuaManager.Instance.lua[luaClassName] as LuaTable;
+            }
+            if (tableClass == null) {
+				Debug.LogErrorFormat ("找不到Lua Table：{0}", luaClassName);
+				return null;
+			}
+
+			LuaFunction fun = tableClass.GetLuaFunction ("New");
+			if (fun == null) {
+				Debug.LogErrorFormat ("找不到方法：{0}.New", luaClassName);
+				return null;
+			}
+			LuaTable ret = fun.Invoke<LuaTable, LuaTable> (tableClass);
+			fun.Dispose();
+
+			tableClass.Dispose ();
+
+			this.table = ret;
+			this.InitTable ();
+			return this.table;
+		}
+
+		[NoToLua]
+		public virtual void Awake ()
+		{
+			if (!string.IsNullOrEmpty (luaClassName)) {
+				SetTableClass ();
+			}
+
+			CallLuaFunction ("Awake", table);
+		}
+
+        [NoToLua]
+        public virtual void OnEnable ()
+		{
+			CallLuaFunction ("OnEnable", table);
+		}
+
+		void OnDisable ()
+		{
+			CallLuaFunction ("OnDisable", table);
+		}
+
+		void Start ()
+		{
+			CallLuaFunction ("Start", table);
+		}
+
+		void OnAnimationEvent (AnimationEvent e)
+		{
+			CallLuaFunction ("OnAnimationEvent", table, e);
+		}
+
+		//PoolManager Message
+		void OnSpawn ()
+		{
+			CallLuaFunction ("OnSpawn", table);
+		}
+
+		//PoolManager Message
+		void OnDespawn ()
+		{
+			CallLuaFunction ("OnDespawn", table);
+		}
+
+		void OnCollisionEnter(Collision collision)
+		{
+			CallLuaFunction ("OnCollisionEnter", table, collision);
+		}
+
+		void OnCollisionExit(Collision collision)
+		{
+			CallLuaFunction ("OnCollisionExit", table, collision);
+		}
+
+        void OnApplicationFocus(bool focus)
+        {
+            CallLuaFunction("OnApplicationFocus", table, focus);
+        }
+
+        void OnApplicationPause(bool pause)
+        {
+            CallLuaFunction("OnApplicationPause", table, pause);
+        }
+
+        private void OnApplicationQuit()
+        {
+            CallLuaFunction("OnApplicationQuit", table);
+        }
+
+        public void OnTimelineEvent(string eventName, string paramString = "")
+        {
+	        CallLuaFunction("OnTimelineEvent", table, eventName, paramString);
+        }
+
+        void OnDestroy ()
+		{
+			if(_destroyed)
+			{
+				return ;
+			}
+			_destroyed = true;
+
+			CallLuaFunction ("OnDestroy", table);
+
+            if (table != null)
+            {
+                table.Dispose();
+                table = null;
+            }
+		}
+
+		void CallLuaFunction (string funcName, LuaTable t)
+		{
+			if (t == null) {
+				return;
+			}
+
+			LuaFunction func = table.GetLuaFunction (funcName);  
+			if (func != null) {
+				func.Call (t);
+                func.Dispose();
+			}
+		}
+
+		void CallLuaFunction (string funcName, LuaTable t, AnimationEvent e)
+		{
+			if (t == null) {
+				return;
+			}
+
+			LuaFunction func = table.GetLuaFunction (funcName);  
+			if (func != null) {
+				func.Call (t, e);
+				func.Dispose();
+			}
+		}
+
+		void CallLuaFunction (string funcName, LuaTable t, Collision c)
+		{
+			if (t == null) {
+				return;
+			}
+
+			LuaFunction func = table.GetLuaFunction (funcName);  
+			if (func != null) {
+				func.Call (t, c);
+				func.Dispose();
+			}
+		}
+
+        void CallLuaFunction(string funcName, LuaTable t, bool b)
+        {
+            if (t == null)
+            {
+                return;
+            }
+
+            LuaFunction func = table.GetLuaFunction(funcName);
+            if (func != null)
+            {
+                func.Call(t, b);
+                func.Dispose();
+            }
+        }
+
+        public void CallLuaFunction(string funcName)
+        {
+            LuaFunction func = table.GetLuaFunction(funcName);
+            if (func != null)
+            {
+                func.Call(table);
+                func.Dispose();
+            }
+        }
+
+        void CallLuaFunction(string funcName, LuaTable t, string s1, string s2)
+        {
+	        if (t == null) 
+	        {
+		        return;
+	        }
+
+	        LuaFunction func = table.GetLuaFunction (funcName);  
+	        if (func != null) 
+	        {
+		        func.Call (t, s1, s2);
+		        func.Dispose();
+	        }
+        }
+    }
+
+}
+
+using System.Collections;
+using System.Collections.Generic;
+using LuaInterface;
+using PJBN;
+using Polaris;
+using UnityEditor;
+using UnityEngine;
+
+namespace PJBN
+{
+#if UNITY_EDITOR
+    [UnityEngine.ExecuteInEditMode]
+#endif
+    public class UIParticleLuaComponent : LuaComponent
+    {
+        public GameObject effect;
+        public bool isLoadByConfig;
+
+        protected override LuaTable SetTableClass()
+        {
+            luaClassName = "BN.UIEffectController";
+
+            var tableClass = LuaManager.Instance.lua[luaClassName] as LuaTable;
+            if (tableClass == null)
+            {
+                Debug.LogErrorFormat("找不到Lua Table：{0}", luaClassName);
+                return null;
+            }
+
+            LuaFunction fun = tableClass.GetLuaFunction("New");
+            if (fun == null)
+            {
+                Debug.LogErrorFormat("找不到方法：{0}.New", luaClassName);
+                return null;
+            }
+            LuaTable ret = fun.Invoke<LuaTable, GameObject, bool, LuaTable>(tableClass, effect, false);
+            fun.Dispose();
+
+            tableClass.Dispose();
+
+            this.table = ret;
+            this.InitTable();
+            return this.table;
+        }
+
+#if UNITY_EDITOR
+
+//        private void 
+//        void OnEnable()
+//        {
+//
+//        }
+
+#endif
+    }
+}
+
+#if UNITY_EDITOR
+[UnityEditor.CustomEditor(typeof(UIParticleLuaComponent))]
+public class UIParticleLuaComponentInspector : UnityEditor.Editor
+{
+    private UIParticleLuaComponent assetObj;
+    void OnEnable()
+    {
+        assetObj = target as UIParticleLuaComponent;
+        if (assetObj)
+            assetObj.luaClassName = "BN.UIEffectController";
+    }
+
+    public override void OnInspectorGUI()
+    {
+        EditorGUILayout.LabelField(assetObj.luaClassName);
+        assetObj.effect = EditorGUILayout.ObjectField("特效预制", assetObj.effect, typeof(GameObject), true) as GameObject;
+        assetObj.isLoadByConfig = EditorGUILayout.Toggle("是否使用配置加载", assetObj.isLoadByConfig);
+    }
+}
+#endif
+
+
+________________LUA__________________
+---
+--- Generated by EmmyLua(https://github.com/EmmyLua)
+--- Created by caiyifei.
+--- DateTime: 2022/5/25 16:27
+--- UIParticle的Wrap类
+
+module('BN', package.seeall)
+
+UIParticleEffect = class('UIParticleEffect', BN.UIEffectBase)
+
+function UIParticleEffect.Add(go, guid, effectName, effectPrototypeGo, parent)
+    local inst = PJBN.LuaComponent.GetOrAdd(go, BN.UIParticleEffect)
+    inst:Init(guid, effectName, effectPrototypeGo, parent)
+    return inst
+end
+
+function UIParticleEffect:Init(guid, effectName, effectPrototypeGo)
+    self.guid = guid
+    self.effectName = effectName
+    if not goutil.IsNil(effectPrototypeGo) then
+        self:SetSource(effectPrototypeGo)
+    end
+end
+
+function UIParticleEffect:Awake()
+    
+end
+
+function UIParticleEffect:OnEnable()
+    if not goutil.IsNil(self.uiParticle) then
+        self.uiParticle:Play()
+    end
+end
+
+function UIParticleEffect:OnDisable()
+    if not goutil.IsNil(self.uiParticle) then
+        self.uiParticle:Stop()
+    end
+end
+
+function UIParticleEffect:OnDestroy()
+    UIEffectMgr.DestroyEffectInst(self)
+end
+
+---@desc 设置源特效对象
+---@param effectPrototypeGo GameObject 特效GameObject
+function UIParticleEffect:SetSource(effectPrototypeGo)
+    effectPrototypeGo:SetParent(self.gameObject, false)
+    self.uiParticle = effectPrototypeGo:GetComponent(typeof(Coffee.UIExtensions.UIParticle))
+end
+
+function UIParticleEffect:EnableClick(isEnable)
+    
+end
+
+function UIParticleEffect:GetEffectName()
+    return self.effectName
+end
+
+function UIParticleEffect:GetGUID()
+    return self.guid
+end
+
+function UIParticleEffect:IsOn()
+    return true
+end
+
+function UIParticleEffect:SetScale(value)
+    if self.uiParticle then
+        self.uiParticle.scale = self.uiParticle.scale * value
+    end
+end
+
+--- 显示特效
+---@param isReplay boolean 是否重播特效
+function UIParticleEffect:TurnOn(isReplay)
+    goutil.SetActive(self.gameObject, true)
+end
+
+--- 隐藏特效
+function UIParticleEffect:TurnOff()
+    goutil.SetActive(self.gameObject, false)
+end
