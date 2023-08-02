@@ -1,0 +1,202 @@
+using Unity.Collections;
+using Unity.Jobs;
+using UnityEngine;
+using UnityEngine.Rendering;
+using Unity.Mathematics;
+
+namespace Polaris.RenderFramework {
+    [ExecuteAlways]
+    public class RainDropComputationJob : MonoBehaviour
+    {
+        [Tooltip("雨滴预制体")]
+        public GameObject rainPrefab;
+        
+        private Material material;
+        private Mesh mesh;
+        private float3 rainDropScale;
+
+        [Tooltip("个体移动速度随机范围")]
+        public float2 speedRange = new float2(1.0f, 1.5f);
+
+        [Tooltip("个体缩放随机范围")]
+        public float2 scaleRange = new float2(0.5f, 1.0f);
+
+        [Tooltip("雨滴数量")]
+        public int rainQuantity = 100;
+
+        [Tooltip("风向")]
+        public float3 windDirection = new float3(0.5f, 0f, 0.5f);
+
+        [Tooltip("风向随机范围")]
+        public float3 windRange = new float3(0f, 0f, 0f);
+
+        private HaltonSequence haltonSequences;
+        private Matrix4x4[] matrix;
+
+        [HideInInspector]
+        public NativeArray<float3> positions;
+
+        [HideInInspector]
+        public NativeArray<RainDropData> result;
+
+
+        private BoxCollider boxCollider;
+        private float3 minBound;
+        private float3 maxBound;
+
+        private void OnEnable()
+        {
+            // Get Rain Mesh & Mat
+            if (rainPrefab == null) 
+            {
+                return;
+            }
+            var meshFilter = rainPrefab.GetComponent<MeshFilter>();
+            if (meshFilter)
+            {
+                mesh = rainPrefab.GetComponent<MeshFilter>().sharedMesh;
+                material = rainPrefab.GetComponent<Renderer>().sharedMaterial;
+                rainDropScale = rainPrefab.GetComponent<Transform>().localScale;
+                material.enableInstancing = true;
+            }
+            else
+            {
+                Debug.Log("Invaild Prefab!");
+            }
+            boxCollider = gameObject.GetComponent<BoxCollider>();
+
+            minBound = boxCollider.center - boxCollider.size / 2;
+            maxBound = boxCollider.center + boxCollider.size / 2;
+            
+            // Get Initial Random Rain Position
+            result = new NativeArray<RainDropData>(rainQuantity, Allocator.Persistent);
+            positions = new NativeArray<float3>(rainQuantity, Allocator.Persistent);
+            haltonSequences = new HaltonSequence(rainQuantity);
+            for (int i = 0; i < rainQuantity; i++)
+            {
+                positions[i] = new float3(haltonSequences.GetByIndex(i).x, 0, haltonSequences.GetByIndex(i).z);
+            }
+            rainPosJob rainPosData = new rainPosJob(){
+                result = result,
+                speedRange = speedRange,
+                scaleRange = scaleRange,
+                boxSize = boxCollider.size,
+                minBound = minBound,
+                maxBound = maxBound,
+                xzPositions = positions.AsReadOnly(),
+                windDirection = windDirection,
+                windRange = windRange,
+                rainDropScale = rainDropScale
+            };
+            JobHandle handle = rainPosData.Schedule(result.Length, 64);
+            handle.Complete();
+
+            // Draw Rain Position at Moment
+            matrix = new Matrix4x4[rainQuantity];
+            for (int i = 0; i < rainQuantity; i++)
+            {
+                matrix[i] = result[i].matrix;
+            }
+            RenderPipelineManager.beginCameraRendering += RenderRainDrops;
+        }
+
+        private void OnValidate()
+        {
+
+            // Get Rain Mesh & Mat
+            if (rainPrefab == null) 
+            {
+                return;
+            }
+            var meshFilter = rainPrefab.GetComponent<MeshFilter>();
+            if (meshFilter)
+            {
+                mesh = rainPrefab.GetComponent<MeshFilter>().sharedMesh;
+                material = rainPrefab.GetComponent<Renderer>().sharedMaterial;
+                rainDropScale = rainPrefab.GetComponent<Transform>().localScale;
+                material.enableInstancing = true;
+            }
+            else
+            {
+                Debug.Log("Invaild Prefab!");
+            }
+            boxCollider = gameObject.GetComponent<BoxCollider>();
+
+            minBound = boxCollider.center - boxCollider.size / 2;
+            maxBound = boxCollider.center + boxCollider.size / 2;
+            
+            // Get Initial Random Rain Position
+            result = new NativeArray<RainDropData>(rainQuantity, Allocator.Persistent);
+            positions = new NativeArray<float3>(rainQuantity, Allocator.Persistent);
+            haltonSequences = new HaltonSequence(rainQuantity);
+            for (int i = 0; i < rainQuantity; i++)
+            {
+                positions[i] = new float3(haltonSequences.GetByIndex(i).x, 0, haltonSequences.GetByIndex(i).z);
+            }
+            rainPosJob rainPosData = new rainPosJob(){
+                result = result,
+                speedRange = speedRange,
+                scaleRange = scaleRange,
+                boxSize = boxCollider.size,
+                minBound = minBound,
+                maxBound = maxBound,
+                xzPositions = positions.AsReadOnly(),
+                windDirection = windDirection,
+                windRange = windRange,
+                rainDropScale = rainDropScale
+            };
+            JobHandle handle = rainPosData.Schedule(result.Length, 64);
+            handle.Complete();
+
+            matrix = new Matrix4x4[rainQuantity];
+            for (int i = 0; i < rainQuantity; i++)
+            {
+                matrix[i] = result[i].matrix;
+            }
+        }
+        private void OnDisable()
+        {
+            RenderPipelineManager.beginCameraRendering -= RenderRainDrops;
+            result.Dispose();
+            positions.Dispose();
+        }
+
+        private void RenderRainDrops(ScriptableRenderContext context, Camera camera){
+            // Calculate Rain Position at Moment
+            float deltaTime = Time.deltaTime;
+            RainDropJob rainDropData = new RainDropJob(){
+                result = result,
+                minBound = minBound,
+                maxBound = maxBound,
+                deltaTime = deltaTime,
+                speedRange = speedRange
+            };
+            JobHandle dropHandle = rainDropData.Schedule(result.Length, 64);
+            dropHandle.Complete();
+
+            // Draw Instanced Mesh
+            for (int i = 0; i < rainQuantity; i++)
+            {
+                // Set Position
+                matrix[i].SetColumn(3, new float4(transform.TransformPoint(result[i].position), 1));
+            }
+
+            if (rainQuantity > 1000)
+            {
+                int batchCount = rainQuantity / 1000 + 1;
+                for (int i = 0; i < batchCount; i++)
+                {
+                    int quantity = (i == batchCount - 1) ? (rainQuantity % 1000) : 1000;
+                    Matrix4x4[] subMatrix = new Matrix4x4[quantity];
+                    System.Array.Copy(matrix, i * 1000, subMatrix, 0, quantity);
+                    Graphics.DrawMeshInstanced(mesh, 0, material, subMatrix, quantity, null, ShadowCastingMode.Off, false, 0, null);
+                }
+            }
+
+            else 
+            {
+                Graphics.DrawMeshInstanced(mesh, 0, material, matrix, rainQuantity, null, ShadowCastingMode.Off, false, 0, null);
+            }
+        }
+    }
+}
