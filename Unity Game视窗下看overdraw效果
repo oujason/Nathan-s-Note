@@ -152,3 +152,60 @@ Shader "Custom/Overdraw"
         }
     }
 }
+
+_____________________WWWW________________
+
+
+________________________________________
+因为移动端SOC的结构设计的缘故，移动端GPU的渲染开销的压力主要体现在带宽（详见移动端GPU架构和常见性能问题）。而带宽又主要由 Overdraw，渲染分辨率、Shader耗时等组成，渲染图形时需要关注 Overdraw 参数，故需要添加 Overdraw 检查工具。
+https://zhuanlan.zhihu.com/p/83232058
+https://blog.csdn.net/Game_jqd/article/details/79370970
+设计
+________________________________________
+主要实现的方向分为两个部分，分别为运行时检查，编辑时检查。
+Overdraw倍率计算公式：
+单帧画面的所有像素平均Overdraw倍率 =（主摄像机overdraw总次数 / 主相机采集RT的size * 主相机computeWeight +  UI相机overdraw次数 / UI相机采集RT的size *  UI相机的computeWeight） 
+各相机computeWeight = 对应的相机渲染分辨率 / 屏幕分辨率
+编辑时
+游戏渲染过程中，大部分情况下均是特效会造成较高 Overdraw，因此需要提供给特效专属检查工具，因为特效又属于资源类，需要自动化检查，因此需要区分为制作时检查和自动化批量检查两个环节。
+运行时
+运行时糅杂很多图形元素，不能快速区分特效等资源，因此运行时只需要收集整体 Overdraw 参数即可。
+实现
+________________________________________
+原理
+________________________________________
+Overdraw可视化
+通过替换 URP 的默认 Renderer，从而让 Camera 使用 Overdraw Renderer 进行渲染，对应的 Render 像素会叠加一个颜色值，因此overdraw的次数越多，对应像素的颜色就越亮。
+
+Overdraw数据收集与处理
+每隔固定帧长的时间后以OverdrawRenderer下渲染一次相机的画面到RT，然后RT中的颜色值，累加出Overdraw总颜色值，通过公式计算出overdraw总次数和overdraw倍率，从而推算出上一次采集(每30帧采集一次)画面的内容被重复绘制了几次。
+ 
+细节
+________________________________________
+1.由于 URP 只支持 Forward Renderer，如果重写 Renderer 的话，URP 识别不了对应的 Camera Stack，因此需要通过新增 Forward Renderer，并添加对应的 RenderFeatrue 来实现 Overdraw。
+ 
+2.项目自定义若干个 Lightmode，因此需要手动添加到 OverdrawPass。
+ 
+3.采集Overdraw数据的RT的尺寸需要和所采集的相机的分辨率一致，否则会有错误——“dimensions of color surface does not match dimensions of depth surface”
+ 
+4.GraphicTrackManager打印数据时，需要注意Overdraw数据是每30帧采集一次，并且第一帧采集到的数据在第30帧才计算完毕，因此需要同步一下帧Id
+（注：如果30帧内停止track，此时有可能因为没有完成第一帧的overdraw数据计算而没有打印出任何数据）
+ 
+操作
+________________________________________
+查看 Overdraw
+新增 OverDraw 模式，方便查看当前 Overdraw 程度，如果某个区域越亮，说明该处的 Overdraw 存在超标，一般而言，要求 Overdraw 最好不超过3。
+ 
+示例（背包界面）：
+ 
+查看特效 Overdraw
+1、运行特效性能分析工具
+ 
+2、在窗口输入要查看的特效名称，如果没有输入任何特效名称，那么工具会尝试去收集当前场景最顶层节点下的ParticleSystem对象集。
+1.	该工具开启的时候会自动关闭当前场景中的后处理节点，因为后处理会影响检测数值。
+2.	特效应该在摄像机面前可被观察，而不是单纯在 Scene View 中看到。
+3.	为了避免场景等影响，可以到 TestParticleScene 中测试。
+ 
+3、可以在 Scene View 中看到对应的检测参数。
+ 
+
